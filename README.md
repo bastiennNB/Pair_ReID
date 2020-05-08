@@ -4,7 +4,7 @@ Code repository relating to master thesis "A Comparative analysis of re-ID model
 
 ## Requirement
 
-- Libraries see env.yml file
+- Libraries see env.txt file
 - Market-1501 dataset (http://www.liangzheng.com.cn/Project/project_reid.html)
 - Keep file structure:  
 	-repo  
@@ -26,8 +26,8 @@ Code repository relating to master thesis "A Comparative analysis of re-ID model
 2) build_dataset.py: Splits Market-1501 in training, validation, query and gallery sets
 3) train_classification.py and train_clustering.py: Trains CNNs for feature extraction
 4) extract_features.py: Extract features from dataset (training or testing)
-If classification model:
-	4.b) go to 5) OR  
+If classification model:  
+	4.b) go to 5) OR   
 	4.b) triplet_train.py: Train MLP from training set extracted features for triplet loss based clustering OR  
 	4.b) moml_train.py: Train Matrix from extracted features for Mahalanobis distance based clustering  
 	4.c) compare_metrics.py: Compare clustering training performances on training set
