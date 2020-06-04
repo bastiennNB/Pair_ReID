@@ -102,7 +102,7 @@ class ReID_net(nn.Module):
             model_ft.layer4[0].conv2.stride = (1,1)
         self.backbone = model_ft
         self.name = name
-        if name == "ML":
+        if name == "CL":
             if simple:
                 self.head = SimpleClassifier(2048, class_num)
             else:
