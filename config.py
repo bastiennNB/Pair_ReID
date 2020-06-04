@@ -39,12 +39,15 @@ MINI_DATA = 5
 #Paths to the outputs of the program
 
 #Classification
-CLASSIFICATION_DIR = os.path.sep.join(["output","classification"])
-if not os.path.exists(CLASSIFICATION_DIR):
-    os.makedirs(CLASSIFICATION_DIR)
-CLASSIFICATION_MODEL_PATH = os.path.sep.join([CLASSIFICATION_DIR,"classification_model.pth"])
-CLASSIFICATION_PLOT =  os.path.sep.join([CLASSIFICATION_DIR,"train_history"])
-#Classification + Clustering
+CL_DIR = os.path.sep.join(["output","CL"])
+if not os.path.exists(CL_DIR):
+    os.makedirs(CL_DIR)
+CL_MODEL_PATH = os.path.sep.join([CL_DIR,"CL_model.pth"])
+CL_PLOT =  os.path.sep.join([CL_DIR,"train_history"])
+if not os.path.exists(CL_PLOT):
+    os.makedirs(CL_PLOT)
+    
+#CL2ML
 MOML_DIR = os.path.sep.join(["output","moml"])
 if not os.path.exists(MOML_DIR):
     os.makedirs(MOML_DIR)
@@ -63,12 +66,24 @@ if not os.path.exists(DIST_METRICS):
     with open(DIST_METRICS, 'wb') as handle:
         pickle.dump(metrics_param, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-#Clustering
-CLUSTERING_DIR = os.path.sep.join(["output","clustering"])
-if not os.path.exists(CLUSTERING_DIR):
-    os.makedirs(CLUSTERING_DIR)
-CLUSTERING_MODEL_PATH = os.path.sep.join([CLUSTERING_DIR,"clustering_model.pth"])
-CLUSTERING_PLOT =  os.path.sep.join([CLUSTERING_DIR,"train_history"])
+#Metric Learning
+ML_DIR = os.path.sep.join(["output","ML"])
+if not os.path.exists(ML_DIR):
+    os.makedirs(ML_DIR)
+ML_MODEL_PATH = os.path.sep.join([ML_DIR,"ML_model.pth"])
+ML_PLOT =  os.path.sep.join([ML_DIR,"train_history"])
+if not os.path.exists(ML_PLOT):
+    os.makedirs(ML_PLOT)
+
+#CL_ML 
+CL_ML_DIR = os.path.sep.join(["output","CL+ML"])
+if not os.path.exists(CL_ML_DIR):
+    os.makedirs(CL_ML_DIR)
+CL_ML_MODEL_PATH = os.path.sep.join([CL_ML_DIR,"CL+ML_model.pth"])
+CL_ML_PLOT =  os.path.sep.join([CL_ML_DIR,"train_history"])
+if not os.path.exists(CL_ML_PLOT):
+    os.makedirs(CL_ML_PLOT)
+
 
 #Image features, labels and cameras
 TEST_FEATURES = os.path.sep.join(["output","test_features.pkl"])

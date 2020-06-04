@@ -8,7 +8,7 @@ Created on Fri Mar  6 15:19:33 2020
 """
 
 import numpy as np
-from torch.utils.data import Dataset,Sampler, DataLoader
+from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.nn as nn
@@ -17,13 +17,13 @@ import pickle
 import time
 from functools import partial
 import matplotlib
-import matplotlib.pyplot as plt
 import os
-import argparse
+import copy
 
 import config
 from model import weights_init_kaiming
-from train_classification import plot_LR
+from train_utils import plot_LR, plot_progress, PKBatchSampler
+from loss import build_triplets, TripletLoss
 
 
 class EmbeddingDataset(Dataset):   
@@ -45,77 +45,7 @@ class EmbeddingDataset(Dataset):
         for label in self.unique_lbs:
             idx = np.argwhere(lb==label).flatten()
             idx_label_dict[label] = idx
-        return idx_label_dict
-        
-
-class BatchSampler(Sampler):
-    '''
-    sampler used in dataloader. method __iter__ should output the indices each time it is called
-    '''
-    def __init__(self, dataset, n_class, n_num, *args, **kwargs):
-        super(BatchSampler, self).__init__(dataset, *args, **kwargs)
-        self.n_class = n_class
-        self.n_num = n_num
-        self.batch_size = n_class * n_num
-        self.dataset = dataset
-        self.labels = np.array(dataset.lbs)
-        self.labels_uniq = np.array(dataset.unique_lbs)
-        self.idx_label_dict = dataset.idx_label_dict
-        self.iter_num = len(self.labels_uniq) // self.n_class
-        self.length = len(self.labels) // self.batch_size
-
-    def __iter__(self):
-        curr_p = 0
-        np.random.shuffle(self.labels_uniq)
-        for k, v in self.idx_label_dict.items():
-            np.random.shuffle(self.idx_label_dict[k])
-        for i in range(self.iter_num):
-            label_batch = self.labels_uniq[curr_p: curr_p + self.n_class]
-            curr_p = np.mod(curr_p+self.n_class,len(self.labels_uniq)-1)
-            idx = []
-            for lb in label_batch:
-                if len(self.idx_label_dict[lb]) > self.n_num:
-                    idx_smp = np.random.choice(self.idx_label_dict[lb],
-                            self.n_num, replace = False)
-                else:
-                    idx_smp = np.random.choice(self.idx_label_dict[lb],
-                            self.n_num, replace = True)
-                idx.extend(idx_smp.tolist())
-            #np.random.shuffle(idx)
-            yield idx
-
-    def __len__(self):
-        return self.iter_num
-
-def build_triplets(embeddings,labels,device):
-    """
-        Builds Batch Hard triplets
-    """
-    batch_size = len(labels)
-    n_dim = embeddings.shape[1]
-    pos = torch.FloatTensor(batch_size,n_dim).to(device)
-    neg = torch.FloatTensor(batch_size,n_dim).to(device)
-    for i,emb in enumerate(embeddings):
-        pos_idx = (labels==labels[i]).nonzero().flatten()
-        same_dist = torch.norm(embeddings[pos_idx,:]-emb,p=2,dim=1)
-        pos[i,:] = embeddings[pos_idx[torch.argmax(same_dist)]]
-        neg_idx =  torch.ones(len(labels),dtype=torch.bool)
-        neg_idx[pos_idx] = False
-        other_dist = torch.norm(embeddings[neg_idx,:]-emb,p=2,dim=1)
-        neg[i,:] = embeddings[(torch.arange(batch_size)[neg_idx])[torch.argmin(other_dist)]]
-    return embeddings, pos, neg
-
-def triplet_loss(xt,xp,xq,soft_margin = False, m=1):
-    """
-        triplet loss based on Hinge loss with soft margin implementation
-    """
-    diff = torch.norm(xp-xt,p=2,dim=1) - torch.norm(xq-xt,p=2,dim=1)
-    if soft_margin:
-        f = torch.log(m + torch.exp(diff))
-    else:
-        f = m + diff
-        f[f<0] = 0
-    return torch.sum(f)
+        return idx_label_dict       
 
 class EmbeddingNet(nn.Module):
     def __init__(self,n_features_in = 512, n_features_out=256):
@@ -163,15 +93,6 @@ class TripletNet(nn.Module):
         emb2 = self.embedding_net(x2)
         return torch.norm(emb2-emb1,p=2,dim=1)
 
-
-def plot_progress(current_epoch,x_epoch,y_loss,fig_path):
-    matplotlib.use('Agg')
-    fig, ax = plt.subplots()
-    ax.plot(x_epoch, y_loss['training'], 'bo-', label='train')
-    ax.plot(x_epoch, y_loss['validation'], 'ro-', label='val')
-    ax.set_title("training_history")
-    ax.legend()
-    fig.savefig(fig_path)
 
 def triplet_train(model,dataloaders,criterion,optimizer,scheduler,device,fig_path,num_epochs,scheduler_fun = None):
     
@@ -246,11 +167,11 @@ def triplet_train(model,dataloaders,criterion,optimizer,scheduler,device,fig_pat
                 y_loss[config.VAL].append(epoch_loss)
                 if (np.mod(epoch,3) or epoch==num_epochs):
                     plot_progress(epoch+1,x_epoch,y_loss,fig_path[0])
-                if(epoch >= (0.9*num_epochs)):
+                if(epoch+1 >= (0.9*num_epochs)):
                     if(epoch_loss < best_val_loss):
                         best_epoch = epoch
                         best_val_loss = epoch_loss
-                        best_model_wts = last_model_wts
+                        best_model_wts = copy.deepcopy(last_model_wts)
                         
         print()
 
@@ -286,7 +207,7 @@ if __name__ == "__main__":
     val_dataset = EmbeddingDataset(extract["val_features"],extract["val_labels"],extract["val_cameras"])
     datasets = {config.TRAIN: train_dataset,
                 config.VAL: val_dataset}
-    samplers = {x: BatchSampler(datasets[x],16,4)
+    samplers = {x: PKBatchSampler(datasets[x],16,4)
           for x in [config.TRAIN, config.VAL]}
     
     dataloaders = {x: DataLoader(datasets[x], batch_sampler = samplers[x], num_workers = 0)
@@ -294,12 +215,12 @@ if __name__ == "__main__":
           
     ##Model and Loss
     model = EmbeddingNet().to(device)
-    criterion = partial(triplet_loss,soft_margin=True, m =1.2)
+    criterion = partial(TripletLoss,soft_margin=True, m =1.2)
     
     ##Optimizer
     N = 50
     optimizer = optim.Adam(model.parameters(), lr=2e-3, amsgrad=False)
-    scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[20], gamma=0.3)
+    scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[20,40], gamma=0.3)
           
     model = triplet_train(model,dataloaders,criterion,optimizer,scheduler,device,fig_path,num_epochs=N)
     

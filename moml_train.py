@@ -20,7 +20,9 @@ import os
 from functools import partial
 import argparse
 
-from triplet_train import EmbeddingDataset, BatchSampler, build_triplets, plot_progress
+from triplet_train import EmbeddingDataset
+from train_utils import plot_progress, PKBatchSampler
+from loss import build_triplets
 import config
 
 
@@ -219,7 +221,7 @@ if __name__ == '__main__':
     val_dataset = EmbeddingDataset(extract["val_features"],extract["val_labels"],extract["val_cameras"])
     datasets = {config.TRAIN: train_dataset,
                 config.VAL: val_dataset}
-    samplers = {x: BatchSampler(datasets[x],8,4)
+    samplers = {x: PKBatchSampler(datasets[x],8,4)
           for x in [config.TRAIN, config.VAL]}
     
     dataloaders = {x: DataLoader(datasets[x], batch_sampler = samplers[x], num_workers = 0)
@@ -239,7 +241,7 @@ if __name__ == '__main__':
         margin = 2
         T = samplers["training"].batch_size*samplers["training"].iter_num
         gamma = 1/(np.sqrt(T))
-        N = 5
+        N = 8
         save_flag = 'MOML'
         fig_path = fig_path_simple
     M = moml_train(dataloaders,model,gamma,margin,device,fig_path,num_epochs=N)

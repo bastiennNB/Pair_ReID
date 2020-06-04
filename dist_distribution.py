@@ -18,7 +18,6 @@ from scipy.stats import gaussian_kde
 from torchvision import datasets, transforms
 from PIL import Image
 import random
-import shutil
 import matplotlib.pyplot as plt
 
 import config
@@ -102,11 +101,20 @@ def output_pairs(output_path,same_ID,other_ID,category,query_path,gallery_path,N
     same_folder = os.path.sep.join([cat_folder,"same_ID"])
     other_folder = os.path.sep.join([cat_folder,"other_ID"])
     if (os.path.exists(same_folder)):
-        shutil.rmtree(same_folder)
-    os.makedirs(same_folder)
+        for filename in os.listdir(same_folder):
+            file_path = os.path.join(same_folder, filename)
+            try:
+                os.unlink(file_path)
+            except OSError:
+                pass
+    else:
+        os.makedirs(same_folder)
     if (os.path.exists(other_folder)):
-        shutil.rmtree(other_folder)
-    os.makedirs(other_folder)
+        for filename in os.listdir(other_folder):
+            file_path = os.path.join(other_folder, filename)
+            os.unlink(file_path)
+    else:
+        os.makedirs(other_folder)
     #Sorting of the indexes according to the category
     perc = 0.01
     if category == "best_sep":
@@ -144,6 +152,7 @@ def build_img_grid(output_path):
                     iax = axes.flatten()[j]
                     iax.imshow(Image.open(imgs_path[i]))
                     dist = imgs[i].split("_")[-1].rsplit(".",1)[0]
+                    dist = str(j) + ": " + dist
                     iax.set_title(dist)
                     iax.axis('off')
                     j += 1
@@ -266,9 +275,13 @@ if __name__ == '__main__':
         other_dist = other_ID[:,0]
         if args.sep_metric == "SSMD":
             SSMD = torch.abs(same_dist.mean()-other_dist.mean())/torch.sqrt(other_dist.std()**2+same_dist.std()**2)
+            print("same ID mean: {:.3f}".format(same_dist.mean()))
+            print("same ID sigma: {:.3f}".format(same_dist.std()))
+            print("diff ID mean: {:.3f}".format(other_dist.mean()))
+            print("diff ID sigma: {:.3f}".format(other_dist.std()))
             SSMD = SSMD.cpu().numpy()
             title = "SSMD = {:.4f}".format(SSMD)
-            print(SSMD)
+            print(title)
         elif args.sep_metric == "bhattacharyya":
             B = bhattacharyya_dist(same_dist.cpu().numpy,other_dist.cpu().numpy)
             title = "bhattacharyya = {}".format(B)

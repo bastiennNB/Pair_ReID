@@ -12,9 +12,7 @@ import os
 import shutil
 import pickle
 import time
-from metric_learn import NCA
 import torch
-import torchvision
 from torchvision import datasets, transforms
 from functools import partial
 import argparse

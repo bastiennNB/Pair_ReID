@@ -7,23 +7,17 @@ Created on Fri Mar  6 15:19:33 2020
 """
 
 import torch
-import torch.nn as nn
-from torchvision import datasets, transforms
 import numpy as np
 import time
 import os
 import pickle
-import random
-from metric_learn import NCA
 from functools import partial
 import matplotlib.pyplot as plt
 import argparse
-import seaborn as sns
 
 import config
-from model import ReID_net
-from triplet_train import triplet_train, EmbeddingNet
-from moml_train import moml_train, DeepMOML
+from triplet_train import EmbeddingNet
+from moml_train import DeepMOML
 
 
 def minkowski_dist(x1,x2,p=2):

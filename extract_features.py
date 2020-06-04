@@ -8,9 +8,6 @@ Created on Fri Mar  6 15:19:33 2020
 
 import torch
 import torch.nn as nn
-import torch.backends.cudnn as cudnn
-import numpy as np
-import torchvision
 from torchvision import datasets, transforms
 import time
 import os
@@ -61,7 +58,7 @@ if __name__ == '__main__':
     #model_type = classification or clustering based feature extractor
     #dataset = training or testing set 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_type',dest = "model_type",default="classification", type=str)
+    parser.add_argument('--model',dest = "model",default="CL", type=str)
     parser.add_argument('--dataset',dest = "dataset",default="test", type=str)
     args = parser.parse_args()
     dataset_path = config.DATA_PATH
@@ -91,14 +88,24 @@ if __name__ == '__main__':
         N_classes = len(image_datasets[config.QUERY].classes)
         
         #Load model
-        if args.model_type == "classification":
-            model = ReID_net(N_classes+1,head = "classification")
-            model.load_state_dict(torch.load(config.CLASSIFICATION_MODEL_PATH))
+        if args.model == "CL":
+            model = ReID_net(N_classes+1,name = "CL")
+            model.load_state_dict(torch.load(config.CL_MODEL_PATH))
             #remove classifier
             model.head.classifier = nn.Sequential()
-        elif args.model_type == "clustering":
-            model = ReID_net(N_classes+1,head = "clustering")
-            model.load_state_dict(torch.load(config.CLUSTERING_MODEL_PATH))
+        elif args.model_type == "ML":
+            model = ReID_net(name = "ML")
+            model.load_state_dict(torch.load(config.ML_MODEL_PATH))
+        elif args.model_type == "CL+ML_ML":
+            model = ReID_net(N_classes+1,name = "CL")
+            model.load_state_dict(torch.load(config.CL_ML_MODEL_PATH))
+            #remove classifier
+            model.head = nn.Sequential()
+        elif args.model_type == "CL+ML_CL":
+            model = ReID_net(N_classes+1,name = "CL")
+            model.load_state_dict(torch.load(config.CL_ML_MODEL_PATH))
+            #remove classifier
+            model.head.classifier = nn.Sequential()
          
         #Actual feature extraction
         model.to(device)
@@ -142,14 +149,24 @@ if __name__ == '__main__':
         val_labels, val_cameras = get_ID(image_paths[config.VAL])
         N_classes = len(image_datasets[config.TRAIN].classes)
         #Load model
-        if args.model_type == "classification":
-            model = ReID_net(N_classes,head = "classification")
-            model.load_state_dict(torch.load(config.CLASSIFICATION_MODEL_PATH))
+        if args.model == "CL":
+            model = ReID_net(N_classes+1,name = "CL")
+            model.load_state_dict(torch.load(config.CL_MODEL_PATH))
             #remove classifier
             model.head.classifier = nn.Sequential()
-        elif args.model_type == "clustering":
-            model = ReID_net(N_classes,head = "clustering")
-            model.load_state_dict(torch.load(config.CLUSTERING_MODEL_PATH))
+        elif args.model_type == "ML":
+            model = ReID_net(name = "ML")
+            model.load_state_dict(torch.load(config.ML_MODEL_PATH))
+        elif args.model_type == "CL+ML_ML":
+            model = ReID_net(N_classes+1,name = "CL")
+            model.load_state_dict(torch.load(config.CL_ML_MODEL_PATH))
+            #remove classifier
+            model.head = nn.Sequential()
+        elif args.model_type == "CL+ML_CL":
+            model = ReID_net(N_classes+1,name = "CL")
+            model.load_state_dict(torch.load(config.CL_ML_MODEL_PATH))
+            #remove classifier
+            model.head.classifier = nn.Sequential()
         
         #Prepare model for evaluation
         model.to(device)
