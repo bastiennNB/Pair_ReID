@@ -19,7 +19,7 @@ import argparse
 
 import config
 from metrics_compare import mahalanobis_dist, minkowski_dist, normalize
-from triplet_train import EmbeddingNet
+from train_mlp import EmbeddingNet
     
 def get_metric(flag,device):
     with open(config.DIST_METRICS, 'rb') as f:

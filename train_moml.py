@@ -17,10 +17,9 @@ import pickle
 import time
 import numpy as np
 import os
-from functools import partial
 import argparse
 
-from triplet_train import EmbeddingDataset
+from train_mlp import EmbeddingDataset
 from train_utils import plot_progress, PKBatchSampler
 from loss import build_triplets
 import config

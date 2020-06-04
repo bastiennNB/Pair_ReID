@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 import argparse
 
 import config
-from triplet_train import EmbeddingNet
-from moml_train import DeepMOML
+from train_mlp import EmbeddingNet
+from train_moml import DeepMOML
 
 
 def minkowski_dist(x1,x2,p=2):
