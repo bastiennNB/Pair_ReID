@@ -1,15 +1,15 @@
-# Comparative analysis for Pair Re-ID
+# A Comparative analysis for Pair Re-ID
 
 Code repository relating to master thesis "A Comparative analysis of re-ID models for matching pairs of Identities" by Nathan Bastien from EPL 2020 MAP promotion (inchallah).
 
 ## Problem definition and objective of the models
 
-- Pair Re-ID question: Is this pair of images from the same identity ?
-- Objective of the models: The model learns a feature space where pairs ofembeddings of the same identity are separated by a small distance, and where pairs ofembeddings of different identities have a big distance between them. 
+- Pair Re-ID question: Is this pair of images, each containing a person, from the same identity ?
+- Objective of the models: The model learns a feature space where pairs of embeddings of the same identity are separated by a smaller distance than pairs of embeddings of different identities.
 
 ## Models
 
-Trains 5 models for Pair Re_ID:
+Trains 5 models for Pair Re-ID:
 - CL: classification supervision
 - ML: metric learning supervision
 - CL2ML: adds a metric learning supervised model on top of the CL CNN. 2 versions of this models:

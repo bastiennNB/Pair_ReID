@@ -112,7 +112,10 @@ def output_pairs(output_path,same_ID,other_ID,category,query_path,gallery_path,N
     if (os.path.exists(other_folder)):
         for filename in os.listdir(other_folder):
             file_path = os.path.join(other_folder, filename)
-            os.unlink(file_path)
+            try:
+                os.unlink(file_path)
+            except OSError:
+                pass
     else:
         os.makedirs(other_folder)
     #Sorting of the indexes according to the category
